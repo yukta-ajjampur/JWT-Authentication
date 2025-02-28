@@ -15,15 +15,16 @@
                 text-align: center;
             }
 
-            .login {
+            main {
                 margin: 20px auto;
                 padding: 40px 50px;
                 max-width: 300px;
                 border-radius: 5px;
-                background: #fff;
+                background: #5a4141;
                 box-shadow: 1px 1px 1px #666;
             }
-            .login input {
+            .login input,
+            button {
                 width: 100%;
                 display: block;
                 box-sizing: border-box;
@@ -36,32 +37,34 @@
 
             .login input[type="text"],
             .login input[type="password"] {
-                border: 1px solid #c0c0c0;
+                border: 1px solid #5e5050;
                 transition: 0.2s;
             }
 
             .login input[type="text"]:hover {
-                border-color: #280603;
+                border-color: #733d39;
                 outline: none;
                 transition: all 0.2s ease-in-out;
             }
 
-            .login input[type="submit"] {
+            .login input[type="submit"],
+            button {
                 border: none;
-                background: #f30905;
+                background: #781615;
                 color: white;
                 font-weight: bold;
                 transition: 0.2s;
                 margin: 20px 0px;
             }
 
-            .login input[type="submit"]:hover {
-                background: #6b0c1a;
+            .login input[type="submit"]:hover,
+            button:hover {
+                background: #6f1825;
             }
 
             .login h2 {
                 margin: 20px 0 0;
-                color: #61201f;
+                color: #350c0c;
                 font-size: 28px;
             }
 
@@ -127,10 +130,16 @@
                 />
                 <input onclick="login(event)" type="submit" value="Log In" />
             </form>
+            <button
+                data-name="goto_settings"
+                onclick="goToSettings()"
+                type="submit"
+            >
+                Settings
+            </button>
         </main>
 
         <script>
-            let token = "";
             function login(event) {
                 event.preventDefault();
                 const data = {
@@ -142,13 +151,15 @@
                     document.getElementById("username").value = "";
                     document.getElementById("password").value = "";
                     if (res && res.data && res.data.success) {
-                        token = res.data.token;
+                        const token = res.data.token;
+                        window.localStorage.setItem("jwt", token);
                         getDashboard();
                     }
                 });
             }
 
             function getDashboard() {
+                const token = window.localStorage.getItem("jwt");
                 axios
                     .get("/api/dashboard", {
                         headers: {
@@ -161,9 +172,69 @@
                                 "User Dashboard";
                             document.querySelector("main").innerHTML =
                                 res.data.myContent;
+                            history.pushState(
+                                { page: "dashboard" },
+                                "",
+                                "/dashboard",
+                            );
                         }
                     });
             }
+
+            function goToSettings() {
+                const token = window.localStorage.getItem("jwt");
+                axios
+                    .get("/api/settings", {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                    })
+                    .then((res) => {
+                        if (res && res.data && res.data.success) {
+                            document.querySelector("h2").innerHTML =
+                                "User Settings";
+                            document.querySelector("main").innerHTML =
+                                res.data.myContent;
+                            history.pushState(
+                                { page: "settings" },
+                                "",
+                                "/settings",
+                            );
+                        }
+                    });
+            }
+
+            window.addEventListener("popstate", (event) => {
+                if (event.state) {
+                    if (event.state.page === "dashboard") {
+                        getDashboard();
+                    } else if (event.state.page === "settings") {
+                        goToSettings();
+                    } else {
+                        location.reload(); // Reload to default login page if state is missing
+                    }
+                }
+            });
+
+            // Load the correct page based on URL
+            window.addEventListener("DOMContentLoaded", () => {
+                if (window.location.pathname === "/dashboard") {
+                    getDashboard();
+                } else if (window.location.pathname === "/settings") {
+                    goToSettings();
+                }
+            });
+
+            function checkJWT() {
+                const token = window.localStorage.getItem("jwt");
+                if (!token) {
+                    axios.get("/").then((res) => {
+                        console.log("Token is expired!");
+                    });
+                }
+            }
+
+            checkJWT();
         </script>
     </body>
 </html>

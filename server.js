@@ -9,6 +9,8 @@ const app = express();
 const PORT = 3000;
 const secretkey = "JSONWEBTOKEN-ASSIGNMENT!";
 
+const jwtMV = exjwt({ secret: secretkey, algorithms: ["HS256"] });
+
 const users = [
   {
     id: 1,
@@ -52,7 +54,7 @@ app.post("/api/login", (req, res) => {
   for (let user of users) {
     if (username == user.username && password == user.password) {
       let token = jwt.sign({ id: user.id, username: username }, secretkey, {
-        expiresIn: "5d",
+        expiresIn: "3m",
       });
       return res.json({
         success: true,
@@ -69,16 +71,19 @@ app.post("/api/login", (req, res) => {
   });
 });
 
-app.get(
-  "/api/dashboard",
-  exjwt({ secret: secretkey, algorithms: ["HS256"] }),
-  (req, res) => {
-    res.json({
-      success: true,
-      myContent: "Secret content  that only logged in people can see!",
-    });
-  },
-);
+app.get("/api/dashboard", jwtMV, (req, res) => {
+  res.json({
+    success: true,
+    myContent: "Secret Content that only logged in people can see!!",
+  });
+});
+
+app.get("/api/settings", jwtMV, (req, res) => {
+  res.json({
+    success: true,
+    myContent: "Settings page can only be seen after a valid login!",
+  });
+});
 
 app.listen(PORT, () => {
   console.log(`App is running on port: ${PORT}`);
