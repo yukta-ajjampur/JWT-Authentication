@@ -1,0 +1,169 @@
+<html>
+    <head>
+        <title>Week-7 Assignment</title>
+        <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+        <style>
+            @import url("https://fonts.googleapis.com/css?family=Raleway:400,700");
+
+            body {
+                background: #c0c0c0;
+                font-family: Raleway, sans-serif;
+                color: #666;
+            }
+
+            h2 {
+                text-align: center;
+            }
+
+            .login {
+                margin: 20px auto;
+                padding: 40px 50px;
+                max-width: 300px;
+                border-radius: 5px;
+                background: #fff;
+                box-shadow: 1px 1px 1px #666;
+            }
+            .login input {
+                width: 100%;
+                display: block;
+                box-sizing: border-box;
+                margin: 10px 0;
+                padding: 14px 12px;
+                font-size: 16px;
+                border-radius: 2px;
+                font-family: Raleway, sans-serif;
+            }
+
+            .login input[type="text"],
+            .login input[type="password"] {
+                border: 1px solid #c0c0c0;
+                transition: 0.2s;
+            }
+
+            .login input[type="text"]:hover {
+                border-color: #280603;
+                outline: none;
+                transition: all 0.2s ease-in-out;
+            }
+
+            .login input[type="submit"] {
+                border: none;
+                background: #f30905;
+                color: white;
+                font-weight: bold;
+                transition: 0.2s;
+                margin: 20px 0px;
+            }
+
+            .login input[type="submit"]:hover {
+                background: #6b0c1a;
+            }
+
+            .login h2 {
+                margin: 20px 0 0;
+                color: #61201f;
+                font-size: 28px;
+            }
+
+            .login p {
+                margin-bottom: 40px;
+            }
+
+            .links {
+                display: table;
+                width: 100%;
+                box-sizing: border-box;
+                border-top: 1px solid #c0c0c0;
+                margin-bottom: 10px;
+            }
+
+            .links a {
+                display: table-cell;
+                padding-top: 10px;
+            }
+
+            .links a:first-child {
+                text-align: left;
+            }
+
+            .links a:last-child {
+                text-align: right;
+            }
+
+            .login p,
+            .login a {
+                text-align: center;
+            }
+
+            .login a {
+                text-decoration: none;
+                font-size: 0.8em;
+            }
+
+            .login a:visited {
+                color: inherit;
+            }
+
+            .login a:hover {
+                text-decoration: underline;
+            }
+        </style>
+    </head>
+    <body>
+        <h2>Welcome, User!</h2>
+        <main>
+            <form class="login">
+                <input
+                    id="username"
+                    type="text"
+                    placeholder="UserName"
+                    name="username"
+                />
+                <input
+                    id="password"
+                    type="password"
+                    placeholder="Password"
+                    name="password"
+                />
+                <input onclick="login(event)" type="submit" value="Log In" />
+            </form>
+        </main>
+
+        <script>
+            let token = "";
+            function login(event) {
+                event.preventDefault();
+                const data = {
+                    username: document.getElementById("username").value,
+                    password: document.getElementById("password").value,
+                };
+
+                axios.post("/api/login", data).then((res) => {
+                    document.getElementById("username").value = "";
+                    document.getElementById("password").value = "";
+                    if (res && res.data && res.data.success) {
+                        token = res.data.token;
+                        getDashboard();
+                    }
+                });
+            }
+
+            function getDashboard() {
+                axios
+                    .get("/api/dashboard", {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                    })
+                    .then((res) => {
+                        if (res && res.data && res.data.success) {
+                            document.querySelector("h2").innerHTML =
+                                "User Dashboard";
+                            document.querySelector("main").innerHTML =
+                                res.data.myContent;
+                        }
+                    });
+            }
+        </script>
+    </body>
+</html>
